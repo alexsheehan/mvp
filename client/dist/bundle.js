@@ -97,8 +97,9 @@
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _scss_base_scss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../scss/base.scss */ "./client/src/scss/base.scss");
-/* harmony import */ var _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_scss_base_scss__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _Board__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Board */ "./client/src/components/Board.jsx");
+/* harmony import */ var _scss_base_scss__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../scss/base.scss */ "./client/src/scss/base.scss");
+/* harmony import */ var _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_scss_base_scss__WEBPACK_IMPORTED_MODULE_2__);
 function _typeof(obj) { if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -109,13 +110,14 @@ function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _d
 
 function _possibleConstructorReturn(self, call) { if (call && (_typeof(call) === "object" || typeof call === "function")) { return call; } return _assertThisInitialized(self); }
 
-function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
-
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function"); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, writable: true, configurable: true } }); if (superClass) _setPrototypeOf(subClass, superClass); }
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _assertThisInitialized(self) { if (self === void 0) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return self; }
+
 
 
 
@@ -132,115 +134,125 @@ function (_React$Component) {
 
     _this = _possibleConstructorReturn(this, _getPrototypeOf(App).call(this, props));
     _this.state = {
-      score: null
+      score: 0,
+      firstRoundScore: 0,
+      round: 'single',
+      board: [[0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0]]
     };
+    _this.clickCell = _this.clickCell.bind(_assertThisInitialized(_assertThisInitialized(_this)));
+    _this.nextRound = _this.nextRound.bind(_assertThisInitialized(_assertThisInitialized(_this)));
     return _this;
   }
 
   _createClass(App, [{
     key: "componentDidMount",
     value: function componentDidMount() {
-      this.clickCell();
+      console.log('ok');
     }
   }, {
     key: "clickCell",
-    value: function clickCell() {
-      var score = this.state.score;
-      this.setState({
-        score: score + 1
-      });
+    value: function clickCell(e) {
+      var _this$state = this.state,
+          score = _this$state.score,
+          board = _this$state.board;
+      var cellScore = Number(e.target.dataset.score);
+      console.log(cellScore, Number(score));
+      var cellX = e.target.dataset.x;
+      var cellY = e.target.dataset.y;
+      var newBoard = board.slice();
+      var cellVal = newBoard[cellX][cellY];
+      console.log(cellVal);
+
+      if (cellVal === 0) {
+        e.target.className = "".concat(_scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.cellContent, " ").concat(_scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.green);
+        newBoard[cellX][cellY] = 1;
+        this.setState({
+          board: newBoard,
+          score: Number(score) + cellScore
+        });
+      } else if (cellVal === 1) {
+        e.target.className = "".concat(_scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.cellContent, " ").concat(_scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.red);
+        newBoard[cellX][cellY] = -1;
+        this.setState({
+          board: newBoard,
+          score: Number(score) - 2 * cellScore
+        });
+      } else if (cellVal === -1) {
+        e.target.className = "".concat(_scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.cellContent);
+        newBoard[cellX][cellY] = 0;
+        this.setState({
+          board: newBoard,
+          score: Number(score) + cellScore
+        });
+      }
+    }
+  }, {
+    key: "nextRound",
+    value: function nextRound() {
+      var _this$state2 = this.state,
+          board = _this$state2.board,
+          firstRoundScore = _this$state2.firstRoundScore,
+          score = _this$state2.score,
+          round = _this$state2.round;
+      var resetBoard = board.slice();
+
+      for (var row = 0; row < resetBoard.length; row += 1) {
+        for (var col = 0; col < resetBoard[row].length; col += 1) {
+          resetBoard[row][col] = 0;
+        }
+      }
+
+      if (round === 'single') {
+        this.setState({
+          firstRoundScore: score,
+          board: resetBoard,
+          round: 'double',
+          score: 0
+        });
+      }
+
+      if (round === 'double') {
+        this.setState({
+          round: 'final',
+          score: firstRoundScore + score
+        });
+      }
     }
   }, {
     key: "render",
     value: function render() {
-      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.main,
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.someClass
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.column
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "Category"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$100"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$200"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$300"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$400"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$500")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.column
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "Category"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$100"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$200"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$300"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$400"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$500")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.column
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "Category"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$100"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$200"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$300"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$400"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$500")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.column
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "Category"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$100"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$200"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$300"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$400"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$500")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.column
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "Category"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$100"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$200"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$300"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$400"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$500")), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.column
-      }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "Category"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$100"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$200"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$300"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$400"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
-        className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.item
-      }, "$500")));
+      var _this$state3 = this.state,
+          board = _this$state3.board,
+          firstRoundScore = _this$state3.firstRoundScore,
+          round = _this$state3.round,
+          score = _this$state3.score;
+      var roundScore = react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.round
+      }, round === 'single' ? 'Jeopardy!' : 'Double Jeopardy!'), round === 'double' ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.score
+      }, "First round:", firstRoundScore), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.score
+      }, "Double Jeopardy score:", score)) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.score
+      }, "Score:", score), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.next,
+        onClick: this.nextRound,
+        role: "presentation"
+      }, round === 'single' ? 'Proceed to Double Jeopardy!' : 'Proceed to Final Jeopardy!'));
+      var final = react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.round
+      }, "Final Jeopardy!"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.score
+      }, "Final score:", score), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.save
+      }, "Save"), react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+        id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.reset
+      }, "Reset"));
+      return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Board__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        board: board,
+        clickCell: this.clickCell,
+        round: round
+      }), round === 'final' ? final : roundScore);
     }
   }]);
 
@@ -248,6 +260,161 @@ function (_React$Component) {
 }(react__WEBPACK_IMPORTED_MODULE_0___default.a.Component);
 
 /* harmony default export */ __webpack_exports__["default"] = (App);
+
+/***/ }),
+
+/***/ "./client/src/components/Board.jsx":
+/*!*****************************************!*\
+  !*** ./client/src/components/Board.jsx ***!
+  \*****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _Column__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Column */ "./client/src/components/Column.jsx");
+/* harmony import */ var _scss_base_scss__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../scss/base.scss */ "./client/src/scss/base.scss");
+/* harmony import */ var _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_scss_base_scss__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+
+var Board = function Board(_ref) {
+  var board = _ref.board,
+      round = _ref.round,
+      clickCell = _ref.clickCell;
+  var columns = [];
+
+  for (var i = 0; i < 6; i += 1) {
+    columns.push(react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Column__WEBPACK_IMPORTED_MODULE_1__["default"], {
+      board: board,
+      round: round,
+      clickCell: clickCell,
+      y: i
+    }));
+  }
+
+  return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    id: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.main,
+    className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.someClass
+  }, columns);
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (Board);
+
+/***/ }),
+
+/***/ "./client/src/components/Cell.jsx":
+/*!****************************************!*\
+  !*** ./client/src/components/Cell.jsx ***!
+  \****************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _scss_base_scss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../scss/base.scss */ "./client/src/scss/base.scss");
+/* harmony import */ var _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_scss_base_scss__WEBPACK_IMPORTED_MODULE_1__);
+
+
+
+var Cell = function Cell(_ref) {
+  var board = _ref.board,
+      val = _ref.val,
+      clickCell = _ref.clickCell,
+      x = _ref.x,
+      y = _ref.y;
+  var cellStyle = _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.cellContent;
+
+  if (board[x][y] === 1) {
+    cellStyle = "".concat(_scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.cellContent, " ").concat(_scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.green);
+  } else if (board[x][y] === -1) {
+    cellStyle = "".concat(_scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.cellContent, " ").concat(_scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.red);
+  } else {
+    cellStyle = "".concat(_scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.cellContent);
+  }
+
+  return val === 'Category' ? react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.cell
+  }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.cellContent
+  }, val.toString())) : react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_1___default.a.cell
+  }, react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: cellStyle,
+    "data-x": x,
+    "data-y": y,
+    "data-score": val,
+    onClick: clickCell,
+    role: "presentation"
+  }, "$", val.toString()));
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (Cell);
+
+/***/ }),
+
+/***/ "./client/src/components/Column.jsx":
+/*!******************************************!*\
+  !*** ./client/src/components/Column.jsx ***!
+  \******************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! react */ "./node_modules/react/index.js");
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _Cell__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Cell */ "./client/src/components/Cell.jsx");
+/* harmony import */ var _scss_base_scss__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../scss/base.scss */ "./client/src/scss/base.scss");
+/* harmony import */ var _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_scss_base_scss__WEBPACK_IMPORTED_MODULE_2__);
+
+
+
+
+var Column = function Column(_ref) {
+  var board = _ref.board,
+      round = _ref.round,
+      clickCell = _ref.clickCell,
+      y = _ref.y;
+  var cellsJ = ['Category', 200, 400, 600, 800, 1000];
+  var cellsDoubleJ = ['Category', 400, 800, 1200, 1600, 2000];
+  var columnJ = cellsJ.map(function (el, i) {
+    return (
+      /* eslint-disable-next-line */
+      react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Cell__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        board: board,
+        val: el,
+        key: i,
+        x: i,
+        y: y,
+        clickCell: clickCell
+      })
+    );
+  });
+  var columnDoubleJ = cellsDoubleJ.map(function (el, i) {
+    return (
+      /* eslint-disable-next-line */
+      react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_Cell__WEBPACK_IMPORTED_MODULE_1__["default"], {
+        board: board,
+        val: el,
+        key: i,
+        x: i,
+        y: y,
+        clickCell: clickCell
+      })
+    );
+  });
+  return react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", {
+    className: _scss_base_scss__WEBPACK_IMPORTED_MODULE_2___default.a.column
+  }, round === 'single' ? columnJ : columnDoubleJ);
+};
+
+/* harmony default export */ __webpack_exports__["default"] = (Column);
 
 /***/ }),
 
@@ -314,14 +481,21 @@ exports = module.exports = __webpack_require__(/*! ../../../node_modules/css-loa
 exports.push([module.i, "@import url(//db.onlinewebfonts.com/c/6a891befed317fa85014538362250762?family=Swiss+911);", ""]);
 
 // module
-exports.push([module.i, "body {\n  font-family: 'Swiss 911';\n  font-size: 40px;\n  background-color: #333535; }\n\n#base__main___3Rmoh {\n  display: grid;\n  grid-template-columns: repeat(6, auto);\n  grid-column-gap: 1rem;\n  grid-row-gap: 1rem;\n  background-color: #060CE9;\n  color: white; }\n\n.base__column___rYJiz {\n  grid-template-columns: subgrid;\n  grid-row-gap: 1rem; }\n\n.base__item___3bKL3 {\n  display: grid;\n  height: 100px;\n  text-align: center;\n  place-items: center; }\n\n.base__newClass___3f2GC {\n  background-color: red; }\n", ""]);
+exports.push([module.i, "body {\n  font-family: 'Swiss 911';\n  font-size: 40px;\n  background-color: #333535; }\n\n#base__main___3Rmoh {\n  display: grid;\n  grid-template-columns: repeat(6, auto);\n  grid-gap: 1rem;\n  background-color: black;\n  color: white; }\n\n.base__column___rYJiz {\n  background-color: black;\n  display: grid;\n  grid-template-columns: subgrid;\n  grid-template-rows: repeat(6, auto);\n  grid-gap: 1rem; }\n\n.base__cell___Maigk {\n  background-color: #060CE9;\n  grid-row-gap: 1rem;\n  height: 100px;\n  place-items: center; }\n\n.base__cellContent___-9o6f {\n  align-items: center;\n  display: flex;\n  height: 100%;\n  justify-content: center; }\n\n.base__green___2d-Kq {\n  background-color: green; }\n\n.base__red___1K9UD {\n  background-color: red; }\n\n#base__round___W_sTt, #base__score___3sCUI, #base__next___689WP, #base__save___fds_n, #base__reset___2vfGL {\n  color: white; }\n", ""]);
 
 // exports
 exports.locals = {
 	"main": "base__main___3Rmoh",
 	"column": "base__column___rYJiz",
-	"item": "base__item___3bKL3",
-	"newClass": "base__newClass___3f2GC"
+	"cell": "base__cell___Maigk",
+	"cellContent": "base__cellContent___-9o6f",
+	"green": "base__green___2d-Kq",
+	"red": "base__red___1K9UD",
+	"round": "base__round___W_sTt",
+	"score": "base__score___3sCUI",
+	"next": "base__next___689WP",
+	"save": "base__save___fds_n",
+	"reset": "base__reset___2vfGL"
 };
 
 /***/ }),
