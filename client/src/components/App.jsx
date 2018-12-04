@@ -1,14 +1,18 @@
 import React from 'react';
+import axios from 'axios';
 import Board from './Board';
+import Scores from './Scores';
+
 import styles from '../scss/base.scss';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      score: 0,
       firstRoundScore: 0,
+      secondRoundScore: 0,
       round: 'single',
+      scores: [],
       board: [
         [0, 0, 0, 0, 0, 0],
         [0, 0, 0, 0, 0, 0],
@@ -20,6 +24,9 @@ class App extends React.Component {
     };
     this.clickCell = this.clickCell.bind(this);
     this.nextRound = this.nextRound.bind(this);
+    this.reset = this.reset.bind(this);
+    this.save = this.save.bind(this);
+    this.previousScores = this.previousScores.bind(this);
   }
 
   componentDidMount() {
@@ -27,41 +34,62 @@ class App extends React.Component {
   }
 
   clickCell(e) {
-    const { score, board } = this.state;
+    const {
+      board, round, firstRoundScore, secondRoundScore,
+    } = this.state;
     const cellScore = Number(e.target.dataset.score);
-    console.log(cellScore, Number(score));
     const cellX = e.target.dataset.x;
     const cellY = e.target.dataset.y;
     const newBoard = board.slice();
     const cellVal = newBoard[cellX][cellY];
-    console.log(cellVal);
     if (cellVal === 0) {
       e.target.className = `${styles.cellContent} ${styles.green}`;
       newBoard[cellX][cellY] = 1;
-      this.setState({
-        board: newBoard,
-        score: Number(score) + cellScore,
-      });
+      if (round === 'single') {
+        this.setState({
+          board: newBoard,
+          firstRoundScore: Number(firstRoundScore) + cellScore,
+        });
+      } else if (round === 'double') {
+        this.setState({
+          board: newBoard,
+          secondRoundScore: Number(secondRoundScore) + cellScore,
+        });
+      }
     } else if (cellVal === 1) {
       e.target.className = `${styles.cellContent} ${styles.red}`;
       newBoard[cellX][cellY] = -1;
-      this.setState({
-        board: newBoard,
-        score: Number(score) - (2 * cellScore),
-      });
+      if (round === 'single') {
+        this.setState({
+          board: newBoard,
+          firstRoundScore: Number(firstRoundScore) - (2 * cellScore),
+        });
+      } else if (round === 'double') {
+        this.setState({
+          board: newBoard,
+          secondRoundScore: Number(secondRoundScore) - (2 * cellScore),
+        });
+      }
     } else if (cellVal === -1) {
       e.target.className = `${styles.cellContent}`;
       newBoard[cellX][cellY] = 0;
-      this.setState({
-        board: newBoard,
-        score: Number(score) + cellScore,
-      });
+      if (round === 'single') {
+        this.setState({
+          board: newBoard,
+          firstRoundScore: Number(firstRoundScore) + cellScore,
+        });
+      } else if (round === 'double') {
+        this.setState({
+          board: newBoard,
+          secondRoundScore: Number(secondRoundScore) + cellScore,
+        });
+      }
     }
   }
 
   nextRound() {
     const {
-      board, firstRoundScore, score, round,
+      board, firstRoundScore, secondRoundScore, round,
     } = this.state;
     const resetBoard = board.slice();
     for (let row = 0; row < resetBoard.length; row += 1) {
@@ -71,27 +99,73 @@ class App extends React.Component {
     }
     if (round === 'single') {
       this.setState({
-        firstRoundScore: score,
+        firstRoundScore,
         board: resetBoard,
         round: 'double',
-        score: 0,
       });
     }
     if (round === 'double') {
+      this.previousScores();
       this.setState({
         round: 'final',
-        score: firstRoundScore + score,
+        secondRoundScore,
       });
     }
   }
 
+  reset() {
+    const { board } = this.state;
+    const resetBoard = board.slice();
+    for (let row = 0; row < resetBoard.length; row += 1) {
+      for (let col = 0; col < resetBoard[row].length; col += 1) {
+        resetBoard[row][col] = 0;
+      }
+    }
+    this.setState({
+      board: resetBoard,
+      firstRoundScore: 0,
+      secondRoundScore: 0,
+      round: 'single',
+    });
+  }
+
+  save() {
+    const { firstRoundScore, secondRoundScore } = this.state;
+    axios({
+      method: 'post',
+      url: '/save',
+      params: {
+        firstRoundScore: firstRoundScore,
+        secondRoundScore: secondRoundScore,
+        date: Date.now(),
+      },
+    })
+      .then((response) => {
+        console.log(response);
+        this.previousScores();
+      });
+  }
+
+  previousScores() {
+    this.setState({
+      round: 'final',
+    });
+    axios.get('/scores')
+      .then((response) => {
+        this.setState({
+          scores: response.data,
+        });
+      });
+  }
+
   render() {
     const {
-      board, firstRoundScore, round, score,
+      board, firstRoundScore, round, secondRoundScore, scores,
     } = this.state;
     const roundScore = (
       <div>
-        <div id={styles.round}>{round === 'single' ? 'Jeopardy!' : 'Double Jeopardy!'}</div>
+        <Board board={board} clickCell={this.clickCell} round={round} />
+        <div id={styles.round}>{round === 'single' ? 'Round: Jeopardy!' : 'Round: Double Jeopardy!'}</div>
         {round === 'double' ? (
           <div>
             <div id={styles.score}>
@@ -100,33 +174,32 @@ class App extends React.Component {
             </div>
             <div id={styles.score}>
               Double Jeopardy score:
-              {score}
+              {secondRoundScore}
             </div>
           </div>
         ) : (
           <div id={styles.score}>
             Score:
-            {score}
+            {firstRoundScore}
           </div>
         )}
         <div id={styles.next} onClick={this.nextRound} role="presentation">{round === 'single' ? 'Proceed to Double Jeopardy!' : 'Proceed to Final Jeopardy!'}</div>
+        <div id={styles.reset} onClick={this.reset} role="presentation">Reset</div>
       </div>
-
     );
     const final = (
       <div>
-        <div id={styles.round}>Final Jeopardy!</div>
         <div id={styles.score}>
           Final score:
-          {score}
+          {firstRoundScore + secondRoundScore}
         </div>
-        <div id={styles.save}>Save</div>
-        <div id={styles.reset}>Reset</div>
+        <div id={styles.save} onClick={this.save} role="presentation">{scores ? 'Save' : 'Save and return scores'}</div>
+        <div id={styles.reset} onClick={this.reset} role="presentation">Reset</div>
+        {scores ? <Scores scores={scores} /> : null}
       </div>
     );
     return (
-      <div>
-        <Board board={board} clickCell={this.clickCell} round={round} />
+      <div className={styles.mainDiv}>
         {round === 'final' ? (
           final
         ) : (
